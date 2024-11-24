@@ -3,7 +3,6 @@ import gymnasium as gym
 import torch
 import torch.nn as nn
 
-# Use the same Env class as during training
 class Env:
     def __init__(self, img_stack=4, action_repeat=8):
         self.env = gym.make('CarRacing-v3', render_mode="rgb_array")
@@ -16,7 +15,7 @@ class Env:
         self.av_r = self.reward_memory()
         self.die = False
 
-        obs, _ = self.env.reset()  # Handle tuple return
+        obs, _ = self.env.reset()
         img_rgb = obs
         img_gray = self.rgb2gray(img_rgb)
         self.stack = [img_gray] * self.img_stack
@@ -69,7 +68,6 @@ class Env:
 
         return memory
 
-# Actor-Critic Network for PPO
 class Net(nn.Module):
     def __init__(self, img_stack):
         super(Net, self).__init__()
@@ -108,7 +106,6 @@ class Net(nn.Module):
         beta = self.beta_head(x) + 1
         return (alpha, beta), v
 
-# Agent class for testing
 class Agent:
     def __init__(self, img_stack):
         self.net = Net(img_stack).float().to(device)
@@ -123,7 +120,6 @@ class Agent:
     def load_param(self, path='param/ppo_net_params1.pkl'):
         self.net.load_state_dict(torch.load(path, map_location=device))
 
-# Initialize and test
 if __name__ == "__main__":
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -136,10 +132,10 @@ if __name__ == "__main__":
     env = Env(img_stack=img_stack, action_repeat=action_repeat)
 
     state = env.reset()
-    for i_ep in range(1):  # Adjust for multiple episodes
+    for i_ep in range(10):
         score = 0
         state = env.reset()
-        frames = []  # For saving video frames
+        frames = []  
         for t in range(1000):
             action = agent.select_action(state)
             state_, reward, done, die = env.step(action * np.array([2., 1., 1.]) + np.array([-1., 0., 0.]))
@@ -152,7 +148,6 @@ if __name__ == "__main__":
 
         print(f'Episode {i_ep}\tScore: {score:.2f}')
 
-    # Save video
     import imageio
-    imageio.mimsave("car_racing_test.mp4", frames, fps=30)
+    imageio.mimsave("car_racing_test.mp4", frames, fps=10)
     print("Video saved as car_racing_test.mp4")
